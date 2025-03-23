@@ -1,0 +1,40 @@
+name: Gossip Contract CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    services:
+      starknet-devnet:
+        image: shardlabs/starknet-devnet:latest
+        ports:
+          - 5050:5050
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      
+      - name: Install Scarb
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/software-mansion/scarb/master/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+      - name: Build contracts
+        run: scarb build
+      
+      - name: Run tests
+        run: scarb test
+      
+      - name: Lint
+        run: scarb fmt --check
