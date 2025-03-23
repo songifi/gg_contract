@@ -17,20 +17,19 @@ fn test_post_message() {
 
     // Initialize contract state for testing
     let mut contract_state = GossipContract::contract_state_for_testing();
-    
+
     // Call the constructor
     GossipContract::constructor(ref contract_state);
-    
     // Test posting a message
-    // let content: felt252 = 'Hello, StarkNet!';
-    // GossipContract::post_message(ref contract_state, content);
-    
+// let content: felt252 = 'Hello, StarkNet!';
+// GossipContract::post_message(ref contract_state, content);
+
     // // Verify message count increased
-    // let count = GossipContract::get_message_count(@contract_state);
-    // assert(count == 1, 'Message count should be 1');
-    
+// let count = GossipContract::get_message_count(@contract_state);
+// assert(count == 1, 'Message count should be 1');
+
     // // Verify message content
-    // let message = GossipContract::get_message(@contract_state, 0);
-    // assert(message.author == caller_address, 'Author should be test account');
-    // assert(message.content == content, 'Content should match');
+// let message = GossipContract::get_message(@contract_state, 0);
+// assert(message.author == caller_address, 'Author should be test account');
+// assert(message.content == content, 'Content should match');
 }

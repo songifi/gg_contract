@@ -2,13 +2,13 @@
 mod GossipContract {
     use starknet::ContractAddress;
     use starknet::get_caller_address;
-    
+
     // Note: Removed the conflicting import
     // use gasless_gossip::storage::Storage;
-    
+
     // We can import specific types from your storage module instead
     // use gasless_gossip::storage::SomeType;
-    
+
     #[storage]
     struct Storage {
         messages: LegacyMap::<u256, Message>,
@@ -28,5 +28,4 @@ mod GossipContract {
         // Initialization logic
         self.message_count.write(0);
     }
-
 }
