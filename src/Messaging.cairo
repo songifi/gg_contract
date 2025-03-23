@@ -1,4 +1,8 @@
-// src/messaging.cairo
+use starknet::storage::Map;
+
+@storage_var
+func messages(thread_id: felt, message_id: felt) -> (MessageMetadata) {
+}
 
 // Define message metadata structure
 struct MessageMetadata {
@@ -19,7 +23,14 @@ func store_message{
     syscall_ptr: felt*,
     pedersen_ptr: HashBuiltin*,
     range_check_ptr,
-}(thread_id: felt, message_id: felt, sender: felt, recipient: felt, timestamp: felt, content_hash: felt) {
+}(
+    thread_id: felt, 
+    message_id: felt, 
+    sender: felt, 
+    recipient: felt, 
+    timestamp: felt, 
+    content_hash: felt
+) {
     messages.write(thread_id, message_id, MessageMetadata {
         sender: sender,
         recipient: recipient,
