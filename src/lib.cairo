@@ -1,6 +1,13 @@
 mod gossip;
 pub mod tokens;
-pub mod interfaces;
-pub mod types;
-
 use gossip::GossipContract;
+use transfer_handler::TransferHandler;
+
+mod types;
+mod interfaces {
+    pub mod igossip;
+    pub mod itokens;
+}
+mod transfer_handler;
+
+

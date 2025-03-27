@@ -3,7 +3,7 @@ mod TokenManager {
     use starknet::{ContractAddress, get_caller_address, get_block_timestamp, get_contract_address};
     use core::array::{ArrayTrait, SpanTrait};
     use core::option::OptionTrait;
-    use gasless_gossip::interfaces::{
+    use gasless_gossip::interfaces::itokens::{
         IERC20Dispatcher, IERC20DispatcherTrait, IERC721Dispatcher, IERC721DispatcherTrait,
         IERC1155Dispatcher, IERC1155DispatcherTrait, ITokenManager, IWallet,
         ITokenManagerDispatcher, ITokenManagerDispatcherTrait,

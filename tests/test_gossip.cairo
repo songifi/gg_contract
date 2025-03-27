@@ -1,8 +1,4 @@
 // This is for the core StarkNet testing functionality
-use starknet::testing::set_caller_address;
-use starknet::testing::set_contract_address;
-use starknet::ContractAddress;
-use starknet::class_hash::Felt252TryIntoClassHash;
 
 // This imports your contract module
 use gasless_gossip::gossip::GossipContract;
