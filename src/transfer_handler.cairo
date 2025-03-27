@@ -97,7 +97,7 @@ mod TransferHandler {
     #[generate_trait]
     impl InternalImpl of InternalTrait {
         fn _add_to_user_history(
-            ref self: ContractState, user: ContractAddress, message_id: felt252, thread_id: felt252
+            ref self: ContractState, user: ContractAddress, message_id: felt252, thread_id: felt252,
         ) {
             let current_count: u32 = self.user_message_count.read(user);
             self.user_message_by_index.write((user, current_count), message_id);
@@ -127,7 +127,6 @@ mod TransferHandler {
         let amount: u256 = 1_000_000_000_000_000_000; // 1 ETH (placeholder for testing)
         assert(amount > 0, 'Amount must be greater than 0');
 
-       
         let transaction_id = self.transaction_count.read() + 1;
         self.transaction_count.write(transaction_id);
 
@@ -138,7 +137,7 @@ mod TransferHandler {
             sender: sender,
             recipient: recipient,
             amount: amount,
-            token_address: starknet::contract_address_const::<0>(), 
+            token_address: starknet::contract_address_const::<0>(),
             timestamp: timestamp,
             state: STATE_PENDING,
             transfer_type: TYPE_ETH,
@@ -151,7 +150,6 @@ mod TransferHandler {
 
         self._add_to_user_history(sender, message_id, thread_id);
 
-        
         self
             .emit(
                 TransferInitiated {
@@ -164,7 +162,7 @@ mod TransferHandler {
                     token_address: starknet::contract_address_const::<0>(),
                     transfer_type: TYPE_ETH,
                     timestamp: timestamp,
-                }
+                },
             );
     }
 
@@ -215,7 +213,6 @@ mod TransferHandler {
 
         self._add_to_user_history(sender, message_id, thread_id);
 
-        
         self
             .emit(
                 TransferInitiated {
@@ -228,12 +225,12 @@ mod TransferHandler {
                     token_address: token_address,
                     transfer_type: TYPE_ERC20,
                     timestamp: timestamp,
-                }
+                },
             );
     }
 
     #[external(v0)]
-    fn accept_transfer(ref self: ContractState, message_id: felt252,) {
+    fn accept_transfer(ref self: ContractState, message_id: felt252) {
         let recipient = get_caller_address();
 
         let thread_id = self.pending_transactions.read((recipient, message_id));
@@ -255,8 +252,7 @@ mod TransferHandler {
         self._add_to_user_history(recipient, message_id, thread_id);
 
         // Transfer funds to recipient based on type
-        if transaction.transfer_type == TYPE_ETH {
-            // Transfer ETH to recipient
+        if transaction.transfer_type == TYPE_ETH {// Transfer ETH to recipient
         // Note: In a real implementation, use proper StarkNet ETH transfer mechanism
         // This is a placeholder as StarkNet has different mechanisms for ETH
         } else if transaction.transfer_type == TYPE_ERC20 {
@@ -274,12 +270,12 @@ mod TransferHandler {
                     thread_id: thread_id,
                     recipient: recipient,
                     timestamp: timestamp,
-                }
+                },
             );
     }
 
     #[external(v0)]
-    fn reject_transfer(ref self: ContractState, message_id: felt252,) {
+    fn reject_transfer(ref self: ContractState, message_id: felt252) {
         let recipient = get_caller_address();
 
         let thread_id = self.pending_transactions.read((recipient, message_id));
@@ -296,7 +292,7 @@ mod TransferHandler {
 
         self.pending_transactions.write((recipient, message_id), 0);
 
-        if transaction.transfer_type == TYPE_ETH {// Return ETH to sender
+        if transaction.transfer_type == TYPE_ETH { // Return ETH to sender
         // Note: In a real implementation, use proper StarkNet ETH transfer mechanism
         // This is a placeholder as StarkNet has different mechanisms for ETH
         } else if transaction.transfer_type == TYPE_ERC20 {
@@ -315,7 +311,7 @@ mod TransferHandler {
                     thread_id: thread_id,
                     recipient: recipient,
                     timestamp: timestamp,
-                }
+                },
             );
     }
 
@@ -348,7 +344,7 @@ mod TransferHandler {
 
     #[external(v0)]
     fn get_user_transaction_history(
-        self: @ContractState, user: ContractAddress
+        self: @ContractState, user: ContractAddress,
     ) -> (Array<felt252>, Array<felt252>) {
         let count: u32 = self.user_message_count.read(user);
         let mut message_ids: Array<felt252> = ArrayTrait::new();
@@ -362,7 +358,7 @@ mod TransferHandler {
             thread_ids.append(thread_id);
             i += 1;
         };
-        
+
         (message_ids, thread_ids)
     }
 }
