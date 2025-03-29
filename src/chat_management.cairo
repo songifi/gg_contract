@@ -215,7 +215,7 @@ mod GaslessGossipGroupChat {
             can_change_metadata: false
         };
         
-        // Member permissions
+        // Member permission
         let member_permissions = Permission {
             role: Role::MEMBER,
             can_invite: false,
