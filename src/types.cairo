@@ -159,3 +159,13 @@ pub struct User {
     pub profile_info: felt252,
     pub wallet_address: ContractAddress,
 }
+
+#[derive(Drop, Serde, starknet::Store)]
+pub struct UserProfile {
+    username: felt252,
+    display_name: felt252,
+    public_key: felt252,
+    is_verified: bool,
+    registration_timestamp: u64,
+    last_updated: u64,
+}
