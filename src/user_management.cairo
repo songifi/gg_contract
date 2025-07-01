@@ -194,6 +194,37 @@ pub mod UserManagement {
         fn get_total_users(self: @ContractState) -> u64{
             self.total_users.read()
         }
+        fn set_verification_status(
+            ref self: TContractState,
+            user_address: ContractAddress,
+            verified: bool
+        ) {
+            // Only owner can update verification status
+            assert(get_caller_address() == self.owner.read(), 'Only owner can verify');
+            // Check if user is registered
+            assert(self.is_registered.entry(user_address).read(), 'User not registered');
+
+            // Get current profile
+            let mut profile = self.profiles.entry(user_address).read();
+
+            // Update verification status
+            profile.is_verified = verified;
+            profile.last_updated = get_block_timestamp();
+
+            // Store updated profile
+            self.profiles.entry(user_address).write(profile);
+            self.user_is_verified.entry(user_address).write(verified);
+
+            // Emit event
+            self.emit(
+                VerificationStatusChanged {
+                    user_address,
+                    username: profile.username,
+                    verified,
+                    timestamp: get_block_timestamp(),
+                }
+            );
+        }
 
     }
 
