@@ -1,4 +1,5 @@
 use crate::types::UserProfile;
+use starknet::ContractAddress;
 
 #[starknet::interface]
 pub trait IUserManagement<TContractState> {
@@ -18,4 +19,6 @@ pub trait IUserManagement<TContractState> {
         user_address: ContractAddress,
         verified: bool
     );
+    fn get_owner(self: @TContractState) -> ContractAddress;
+    fn transfer_ownership(ref self: TContractState, new_owner: ContractAddress);
 }

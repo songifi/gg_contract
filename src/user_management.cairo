@@ -226,6 +226,15 @@ pub mod UserManagement {
             );
         }
 
+        fn get_owner(self: @ContractState) -> ContractAddress {
+            self.owner.read()
+        }
+
+        fn transfer_ownership(ref self: ContractState, new_owner: ContractAddress) {
+            assert(get_caller_address() == self.owner.read(), 'Only owner can transfer');
+            assert(new_owner.is_non_zero(), 'Invalid new owner address');
+            self.owner.write(new_owner);
+        }
     }
 
     #[generate_trait]
