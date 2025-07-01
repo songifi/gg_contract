@@ -217,3 +217,46 @@ fn test_update_profile_unregistered_user() {
     dispatcher.update_profile(Option::Some(USERNAME1), Option::None, Option::None);
     stop_cheat_caller_address(dispatcher.contract_address);
 }
+
+#[test]
+fn test_verification_status() {
+    let dispatcher = deploy_contract();
+
+    // Register user
+    start_cheat_caller_address(dispatcher.contract_address, USER1());
+    set_block_timestamp(TIMESTAMP1);
+    dispatcher.register_user(USERNAME1, DISPLAY_NAME1, PUBLIC_KEY1);
+    stop_cheat_caller_address(dispatcher.contract_address);
+
+    // Verify user as owner
+    start_cheat_caller_address(dispatcher.contract_address, OWNER());
+    set_block_timestamp(TIMESTAMP2);
+    dispatcher.set_verification_status(USER1(), true);
+
+
+    // Check verification status
+    let profile = dispatcher.get_profile(USER1());
+    assert(profile.is_verified, 'User should be verified');
+    assert(profile.last_updated == TIMESTAMP2, 'Last updated should change');
+
+    // Unverify user
+    dispatcher.set_verification_status(USER1(), false);
+    let updated_profile = dispatcher.get_profile(USER1());
+    assert(!updated_profile.is_verified, 'User should be unverified');
+    stop_cheat_caller_address(dispatcher.contract_address);
+}
+
+#[test]
+#[should_panic(expected: ('Only owner can verify',))]
+fn test_verification_unauthorized() {
+    let dispatcher = deploy_contract();
+
+    // Register user
+    start_cheat_caller_address(dispatcher.contract_address, USER1());
+    dispatcher.register_user(USERNAME1, DISPLAY_NAME1, PUBLIC_KEY1);
+
+
+    // Try to verify as non-owner
+    dispatcher.set_verification_status(USER1(), true);
+    stop_cheat_caller_address(dispatcher.contract_address);
+}
