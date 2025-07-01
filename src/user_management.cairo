@@ -34,6 +34,7 @@ pub mod UserManagement {
         user_address: ContractAddress,
         display_name: felt252,
         public_key: felt252,
+        username: felt252,
         timestamp: u64,
     }
 
@@ -124,7 +125,7 @@ pub mod UserManagement {
             self.total_users.write(current_total + 1);
 
             // Emit event
-            self.emit(Event::UserRegistered(
+            self.emit(
                 UserRegistered {
                     user_address: caller,
                     username,
@@ -132,9 +133,46 @@ pub mod UserManagement {
                     public_key,
                     timestamp: current_timestamp,
                 }
-            ));
+            );
         }
-        
+        fn is_valid_username(self: ContractState, username: felt252) -> bool{
+            self._is_username_available(username)
+        }
+        fn update_profile(
+            ref self: ContractState, username: Option<felt252>, display_name: Option<felt252>,
+            public_key: Option<felt252>
+        ){
+            let caller = get_caller_address();
+            // Verify that caller is a registered user
+            assert(self.is_registered.entry(caller).read(), 'User not registered');
+            // Get Caller Profile
+            let mut profile = self.profiles.entry(caller).read();
+            // Update the information
+            if let Option::Some(new_username) = username {
+                // Check if username is available
+                assert(!_is_username_available(new_username), 'Username already taken');
+                profile.username = new_username;
+            }
+            if let Option::Some(new_display_name) = display_name {
+                profile.username = new_display_name;
+            }
+            if let Option::Some(public_key) = public_key {
+                profile.public_key = public_key;
+            }
+            profile.last_updated = get_block_timestamp();
+            self.profiles.entry(caller).write(profile);
+
+            // Emit Profile Updated Event
+            self.emit(
+                ProfileUpdated {
+                    user_address: caller,
+                    display_name: profile.display_name,
+                    username: profile.username,
+                    public_key: profile.public_key,
+                    timestamp: get_block_timestamp(),
+                }
+            );
+        }
     }
 
     #[generate_trait]
