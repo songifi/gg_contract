@@ -150,7 +150,7 @@ pub mod UserManagement {
             // Update the information
             if let Option::Some(new_username) = username {
                 // Check if username is available
-                assert(!_is_username_available(new_username), 'Username already taken');
+                assert(_is_username_available(new_username), 'Username already taken');
                 let prev_username = profile.username;
                 // Update the new username
                 profile.username = new_username;
