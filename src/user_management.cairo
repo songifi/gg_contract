@@ -151,7 +151,11 @@ pub mod UserManagement {
             if let Option::Some(new_username) = username {
                 // Check if username is available
                 assert(!_is_username_available(new_username), 'Username already taken');
+                let prev_username = profile.username;
+                // Update the new username
                 profile.username = new_username;
+                // Free up the previous username
+                self.username_to_address.entry(username).write(0.into());
             }
             if let Option::Some(new_display_name) = display_name {
                 profile.username = new_display_name;
@@ -173,6 +177,24 @@ pub mod UserManagement {
                 }
             );
         }
+        fn is_verified_user(self: @ContractState, username: felt252) -> bool{
+            self.user_is_verified.entry(username).read()
+        }
+        fn get_user_profile(self: @ContractState, username: felt252) -> UserProfile{
+            let user_address = self.username_to_address.entry(username).read();
+            assert(!existing_address.is_zero(), 'User does not exist');
+            self.profiles.entry(user_address).read()
+        }
+        fn get_user_by_username(self: @ContractState, username: felt252) -> ContractAddress {
+            self.username_to_address.entry(username).read()
+        }
+        fn is_user_registered(self: @ContractState, user_address: ContractAddress) -> bool {
+            self.is_registered.entry(caller).read()
+        }
+        fn get_total_users(self: @ContractState) -> u64{
+            self.total_users.read()
+        }
+
     }
 
     #[generate_trait]
