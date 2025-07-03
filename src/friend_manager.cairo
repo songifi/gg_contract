@@ -290,7 +290,6 @@ pub mod FriendManager {
             let mut i = 0;
             while i < to_list.len() {
                 let to = *to_list.at(i);
-                // Ignore errors for batch
                 if from != to
                     && !self.blocked.entry((to, from)).read()
                     && !self.blocked.entry((from, to)).read()
