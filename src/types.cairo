@@ -197,3 +197,37 @@ pub enum TransferStatus {
     Cancelled,
 }
 
+
+#[derive(Drop, Serde, starknet::Store, Copy)]
+    pub struct StarkTransfer {
+    pub id: felt252,
+    pub sender: starknet::ContractAddress,
+    pub recipient: starknet::ContractAddress,
+    pub amount: u256,
+    pub fee: u256,
+    pub net_amount: u256,
+    pub message_id: felt252,
+    pub chat_id: felt252,
+    pub memo: felt252,
+    pub timestamp: u64,
+    pub status: TransferStatus,
+}
+
+#[derive(Drop, Serde, starknet::Store, Copy, PartialEq)]
+pub enum TransferStatus {
+    Pending,
+    Completed,
+    Failed,
+    Cancelled,
+}
+
+
+#[derive(Drop, Serde, starknet::Store)]
+pub struct UserProfile {
+    username: felt252,
+    display_name: felt252,
+    public_key: felt252,
+    is_verified: bool,
+    registration_timestamp: u64,
+    last_updated: u64,
+}
