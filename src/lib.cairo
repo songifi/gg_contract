@@ -7,3 +7,5 @@ mod interfaces {
 }
 mod transfer_handler;
 pub mod user_management;
+pub mod friend_interface;
+pub mod friend_manager;

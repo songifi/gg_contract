@@ -1,40 +1,45 @@
-name: Gossip Contract CI
+name: Gasless Gossip
 
 on:
   push:
-    branches: [ main ]
+    branches: ["**"]
   pull_request:
-    branches: [ main ]
+    branches: ["**"]
 
 jobs:
-  build-and-test:
+  build-contracts:
     runs-on: ubuntu-latest
-    
-    services:
-      starknet-devnet:
-        image: shardlabs/starknet-devnet:latest
-        ports:
-          - 5050:5050
-    
+    name: Build contracts
     steps:
-      - uses: actions/checkout@v3
-      
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Scarb
+        uses: software-mansion/setup-scarb@v1
         with:
-          profile: minimal
-          toolchain: stable
-      
-      - name: Install Scarb
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/software-mansion/scarb/master/install.sh | sh
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-      
+          scarb-version: "2.11.4"
+
       - name: Build contracts
         run: scarb build
-      
+        working-directory: contracts
+
+  test:
+    runs-on: ubuntu-latest
+    name: tests
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Scarb
+        uses: software-mansion/setup-scarb@v1
+        with:
+          scarb-version: "2.11.4"
+
+      - name: Set up SNForge
+        uses: foundry-rs/setup-snfoundry@v3
+        with:
+          starknet-foundry-version: "0.44.0"
+
       - name: Run tests
-        run: scarb test
-      
-      - name: Lint
-        run: scarb fmt --check
+        run: snforge test
+        working-directory: contracts

@@ -1,27 +1,40 @@
 [package]
 name = "gasless_gossip"
 version = "0.1.0"
-edition = "2023_10"
+edition = "2024_07"
+authors = ["GassLess Team <gg@gmail.com>"]
+description = "Gassless gossip"
+repository = "https://github.com/songifi/gg_contract"
+keywords = ["GassLess Gossip", "Chat", "social", "cairo", "contracts", "starknet"]
+
 
 [dependencies]
-starknet = "2.4.0"
-openzeppelin = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v0.8.0" }
+starknet = "2.11.4"
+openzeppelin = "1.0.0"
+pragma_lib = { git = "https://github.com/astraly-labs/pragma-lib", branch = "main" }
+
+[profile.dev.cairo]
+unstable-add-statements-code-locations-debug-info = true
+unstable-add-statements-functions-debug-info = true
 
 [dev-dependencies]
-snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry", tag = "v0.31.0" }
-
-[lib]
-sierra = true
-casm = true
+snforge_std = "0.44.0"
+assert_macros = "2.11.2"
 
 [[target.starknet-contract]]
 sierra = true
-casm = true
 
-[tool.fmt]
-sort-module-block-list = true
-max-line-length = 100
-tab-size = 4
+[cairo]
+sierra-replace-ids = true
+
+[scripts]
+test = "snforge test"
+
+[lib]
+path = "src/lib.cairo"
+
+[tool.scarb]
+allow-prebuilt-plugins = ["snforge_std"]
 
 [tool.snforge]
-exit_first = false
+contracts-path = "target/dev"
