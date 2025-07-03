@@ -21,7 +21,7 @@ jobs:
 
       - name: Build contracts
         run: scarb build
-        working-directory: contracts
+        working-directory: .
 
   test:
     runs-on: ubuntu-latest
@@ -42,4 +42,4 @@ jobs:
 
       - name: Run tests
         run: snforge test
-        working-directory: contracts
+        working-directory: .
