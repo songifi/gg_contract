@@ -1,6 +1,7 @@
 use starknet::storage::{Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess};
 use starknet::{ContractAddress, get_caller_address};
 use crate::friend_interface::IFriendManager;
+use core::num::traits::Zero;
 
 #[derive(Drop, starknet::Event)]
 pub struct FriendRequestSent {
@@ -49,6 +50,8 @@ pub mod FriendManager {
 
     #[storage]
     struct Storage {
+        // Admin for upgradeability
+        admin: ContractAddress,
         // Friend requests: (from, to) -> bool (pending)
         friend_requests: Map<(ContractAddress, ContractAddress), bool>,
         // Friends: (user, friend) -> bool
@@ -75,6 +78,25 @@ pub mod FriendManager {
         PrivacySettingsChanged: PrivacySettingsChanged,
         UserBlocked: UserBlocked,
         UserUnblocked: UserUnblocked,
+    }
+
+    // ================ Constructor ================
+    #[constructor]
+    fn constructor(ref self: ContractState, admin: ContractAddress) {
+        self.admin.write(admin);
+    }
+
+    // ================ Admin & Upgradeability ================
+    #[generate_trait]
+    impl AdminImpl of AdminTrait {
+        fn get_admin(self: @ContractState) -> ContractAddress {
+            self.admin.read()
+        }
+
+        fn assert_only_admin(self: @ContractState) {
+            let caller = get_caller_address();
+            assert(self.admin.read() == caller, 'Only admin allowed');
+        }
     }
 
     #[abi(embed_v0)]
@@ -331,6 +353,11 @@ pub mod FriendManager {
                 }
                 i += 1;
             }
+        }
+        fn upgrade(ref self: ContractState, impl_hash: starknet::ClassHash) {
+            self.assert_only_admin();
+            assert(impl_hash.is_non_zero(), 'Class hash cannot be zero');
+            starknet::syscalls::replace_class_syscall(impl_hash).unwrap();
         }
     }
 }

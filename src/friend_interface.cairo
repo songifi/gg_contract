@@ -59,4 +59,7 @@ pub trait IFriendManager<TContractState> {
 
     /// Batch remove contacts
     fn batch_remove_contacts(ref self: TContractState, contacts: Array<ContractAddress>);
+
+    /// Upgrade the contract implementation (admin only)
+    fn upgrade(ref self: TContractState, impl_hash: starknet::ClassHash);
 }
