@@ -5,10 +5,19 @@ use snforge_std::{
     stop_cheat_caller_address,
 };
 use crate::test_utils::{USER1_ADDR, USER2_ADDR, USER3_ADDR};
+use starknet::ClassHash;
 
 fn setup_friend_manager() -> IFriendManagerDispatcher {
     let contract = declare("FriendManager").unwrap().contract_class();
-    let (contract_address, _) = contract.deploy(@ArrayTrait::new()).unwrap();
+    let calldata = array![USER1_ADDR().into()];
+    let (contract_address, _) = contract.deploy(@calldata).unwrap();
+    IFriendManagerDispatcher { contract_address }
+}
+
+fn setup_friend_manager_with_admin(admin: starknet::ContractAddress) -> IFriendManagerDispatcher {
+    let contract = declare("FriendManager").unwrap().contract_class();
+    let calldata = array![admin.into()];
+    let (contract_address, _) = contract.deploy(@calldata).unwrap();
     IFriendManagerDispatcher { contract_address }
 }
 
@@ -88,4 +97,15 @@ fn test_edge_cases() {
     stop_cheat_caller_address(friend_manager.contract_address);
     let blocked = friend_manager.get_blocked_users(USER1_ADDR());
     assert(ArrayTrait::len(@blocked) == 1, 'one blocked');
+}
+
+#[test]
+fn test_upgradeability() {
+    let admin = USER1_ADDR();
+    let friend_manager = setup_friend_manager_with_admin(admin);
+    // Declare a new class hash to upgrad
+    let new_class_hash = declare("FriendManager").unwrap().contract_class().class_hash;
+    start_cheat_caller_address(friend_manager.contract_address, admin);
+    friend_manager.upgrade(*new_class_hash);
+    stop_cheat_caller_address(friend_manager.contract_address);
 }
