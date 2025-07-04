@@ -120,8 +120,11 @@ pub struct MetadataEvent {
 pub mod Errors {
     // Common Errors
     pub const ZERO_ADDRESS: felt252 = 'ZERO_ADDRESS';
+    pub const ZERO_AMOUNT: felt252 = 'ZERO_AMOUNT';
     pub const INSUFFICIENT_BALANCE: felt252 = 'INSUFFICIENT_BALANCE';
     pub const INSUFFICIENT_ALLOWANCE: felt252 = 'INSUFFICIENT_ALLOWANCE';
+    pub const PAUSED: felt252 = 'PAUSED';
+    pub const UNAUTHORIZED: felt252 = 'UNAUTHORIZED';
 
     // Token Specific
     pub const UNSUPPORTED_STANDARD: felt252 = 'UNSUPPORTED_STANDARD';
@@ -136,6 +139,17 @@ pub mod Errors {
     pub const METADATA_FETCH_FAILED: felt252 = 'METADATA_FETCH_FAILED';
     pub const INVALID_AMOUNT: felt252 = 'INVALID_AMOUNT';
     pub const LENGTH_MISMATCH: felt252 = 'LENGTH_MISMATCH';
+
+    // Stark Transfer Errors
+    pub const TRANSFER_TO_SELF: felt252 = 'TRANSFER_TO_SELF';
+    pub const TRANSFER_EXECUTION_FAILED: felt252 = 'TRANSFER_EXECUTION_FAILED';
+    pub const TRANSFER_COOLDOWN: felt252 = 'TRANSFER_COOLDOWN';
+    pub const TRANSFER_NOT_FOUND: felt252 = 'TRANSFER_NOT_FOUND';
+    pub const DAILY_LIMIT_EXCEEDED: felt252 = 'DAILY_LIMIT_EXCEEDED';
+    pub const AMOUNT_TOO_LARGE: felt252 = 'AMOUNT_TOO_LARGE';
+    pub const AMOUNT_TOO_SMALL: felt252 = 'AMOUNT_TOO_SMALL';
+    pub const INVALID_FEE: felt252 = 'INVALID_FEE';
+    pub const NO_FEES_TO_COLLECT: felt252 = 'NO_FEES_TO_COLLECT';
 }
 
 // Query Structures
@@ -159,6 +173,54 @@ pub struct User {
     pub profile_info: felt252,
     pub wallet_address: ContractAddress,
 }
+
+#[derive(Drop, Serde, starknet::Store, Copy)]
+pub struct StarkTransfer {
+    pub id: felt252,
+    pub sender: starknet::ContractAddress,
+    pub recipient: starknet::ContractAddress,
+    pub amount: u256,
+    pub fee: u256,
+    pub net_amount: u256,
+    pub message_id: felt252,
+    pub chat_id: felt252,
+    pub memo: felt252,
+    pub timestamp: u64,
+    pub status: TransferStatus,
+}
+
+#[derive(Drop, Serde, starknet::Store, Copy, PartialEq)]
+pub enum TransferStatus {
+    Pending,
+    Completed,
+    Failed,
+    Cancelled,
+}
+
+
+#[derive(Drop, Serde, starknet::Store, Copy)]
+    pub struct StarkTransfer {
+    pub id: felt252,
+    pub sender: starknet::ContractAddress,
+    pub recipient: starknet::ContractAddress,
+    pub amount: u256,
+    pub fee: u256,
+    pub net_amount: u256,
+    pub message_id: felt252,
+    pub chat_id: felt252,
+    pub memo: felt252,
+    pub timestamp: u64,
+    pub status: TransferStatus,
+}
+
+#[derive(Drop, Serde, starknet::Store, Copy, PartialEq)]
+pub enum TransferStatus {
+    Pending,
+    Completed,
+    Failed,
+    Cancelled,
+}
+
 
 #[derive(Drop, Serde, starknet::Store)]
 pub struct UserProfile {
