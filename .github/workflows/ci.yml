@@ -2,10 +2,7 @@ name: Gasless Gossip
 
 on:
   push:
-    branches: ["**"]
-  pull_request:
-    branches: ["**"]
-
+    branches: ["main"]
 jobs:
   build-contracts:
     runs-on: ubuntu-latest
