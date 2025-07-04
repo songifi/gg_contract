@@ -103,7 +103,7 @@ fn test_edge_cases() {
 fn test_upgradeability() {
     let admin = USER1_ADDR();
     let friend_manager = setup_friend_manager_with_admin(admin);
-    // Declare a new class hash (simulate upgrade)
+    // Declare a new class hash to upgrad
     let new_class_hash = declare("FriendManager").unwrap().contract_class().class_hash;
     start_cheat_caller_address(friend_manager.contract_address, admin);
     friend_manager.upgrade(*new_class_hash);
