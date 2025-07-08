@@ -11,7 +11,6 @@ keywords = ["GassLess Gossip", "Chat", "social", "cairo", "contracts", "starknet
 [dependencies]
 starknet = "2.11.4"
 openzeppelin = "1.0.0"
-pragma_lib = { git = "https://github.com/astraly-labs/pragma-lib", branch = "main" }
 
 [dev-dependencies]
 snforge_std = "0.44.0"
