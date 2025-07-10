@@ -1,6 +1,8 @@
 #[cfg(test)]
-mod tests {
-    use gasless_gossip::interface::{IUserProfileDispatcher, IUserProfileDispatcherTrait};
+mod user_profile {
+    use gasless_gossip::interface::user_profile::{
+        IUserProfileDispatcher, IUserProfileDispatcherTrait,
+    };
     use snforge_std::{
         ContractClassTrait, DeclareResultTrait, declare, start_cheat_block_timestamp,
         start_cheat_caller_address, stop_cheat_caller_address,

@@ -1,7 +1,7 @@
 #[starknet::contract]
 mod UserProfile {
     use core::num::traits::Zero;
-    use gasless_gossip::interface::{IUserProfile, UserProfile};
+    use gasless_gossip::interface::user_profile::{IUserProfile, UserProfile};
     use starknet::storage::{
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
