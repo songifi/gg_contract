@@ -1,7 +1,6 @@
 #[starknet::contract]
 mod Message {
     use gasless_gossip::components::message::message::message_component;
-    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
 
     component!(path: message_component, storage: message, event: MessageEvent);
 
