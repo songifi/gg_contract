@@ -1,4 +1,4 @@
-use gasless_gossip::interface::message::{IMessageDispatcher, IMessageDispatcherTrait};
+use gasless_gossip::components::message::interface::{IMessageDispatcher, IMessageDispatcherTrait};
 use snforge_std::{
     ContractClassTrait, DeclareResultTrait, declare, start_cheat_block_timestamp,
     start_cheat_caller_address, stop_cheat_caller_address,
