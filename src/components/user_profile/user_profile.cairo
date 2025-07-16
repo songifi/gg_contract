@@ -1,25 +1,23 @@
-#[starknet::contract]
-mod UserProfile {
+#[starknet::component]
+pub mod user_profile_component {
     use core::num::traits::Zero;
-    use gasless_gossip::interface::user_profile::{IUserProfile, UserProfile};
+    use gasless_gossip::components::user_profile::interface::{IUserProfile, UserProfile};
     use starknet::storage::{
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
 
     #[storage]
-    struct Storage {
-        // Core mappings
+    pub struct Storage {
         profiles: Map<ContractAddress, UserProfile>,
         username_to_address: Map<felt252, ContractAddress>,
         address_to_username: Map<ContractAddress, felt252>,
-        // Statistics
         total_users: u256,
     }
 
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {
+    pub enum Event {
         UserRegistered: UserRegistered,
         ProfileUpdated: ProfileUpdated,
         UsernameChanged: UsernameChanged,
@@ -54,15 +52,13 @@ mod UserProfile {
         user_address: ContractAddress,
     }
 
-    // TODO: Impl OZ's Ownable component
-    #[constructor]
-    fn constructor(ref self: ContractState) {
-        self.total_users.write(0);
-    }
-
-    #[abi(embed_v0)]
-    impl UserProfileImpl of IUserProfile<ContractState> {
-        fn register_user(ref self: ContractState, username: felt252, public_key: felt252) {
+    #[embeddable_as(UserProfileComp)]
+    impl UserProfileImpl<
+        TContractState, +HasComponent<TContractState>,
+    > of IUserProfile<ComponentState<TContractState>> {
+        fn register_user(
+            ref self: ComponentState<TContractState>, username: felt252, public_key: felt252,
+        ) {
             let caller = get_caller_address();
             let current_time = get_block_timestamp();
 
@@ -83,7 +79,6 @@ mod UserProfile {
             self.username_to_address.entry(username).write(caller);
             self.address_to_username.entry(caller).write(username);
 
-            // Update statistics
             let current_count = self.total_users.read();
             self.total_users.write(current_count + 1);
 
@@ -96,7 +91,11 @@ mod UserProfile {
                 );
         }
 
-        fn update_profile(ref self: ContractState, new_username: felt252, new_public_key: felt252) {
+        fn update_profile(
+            ref self: ComponentState<TContractState>,
+            new_username: felt252,
+            new_public_key: felt252,
+        ) {
             let caller = get_caller_address();
             let current_time = get_block_timestamp();
 
@@ -127,7 +126,7 @@ mod UserProfile {
 
             self.profiles.entry(caller).write(current_profile);
 
-            // Emit profile update event
+            // Emit event
             self
                 .emit(
                     ProfileUpdated {
@@ -141,44 +140,52 @@ mod UserProfile {
         }
 
         fn get_profile_by_address(
-            self: @ContractState, user_address: ContractAddress,
+            self: @ComponentState<TContractState>, user_address: ContractAddress,
         ) -> UserProfile {
             let profile = self.profiles.entry(user_address).read();
             assert!(profile.is_active, "User profile not found or inactive");
             profile
         }
 
-        fn get_profile_by_username(self: @ContractState, username: felt252) -> UserProfile {
+        fn get_profile_by_username(
+            self: @ComponentState<TContractState>, username: felt252,
+        ) -> UserProfile {
             let user_address = self.username_to_address.entry(username).read();
             assert(!user_address.is_zero(), 'Username not found');
             self.get_profile_by_address(user_address)
         }
 
-        fn get_address_by_username(self: @ContractState, username: felt252) -> ContractAddress {
+        fn get_address_by_username(
+            self: @ComponentState<TContractState>, username: felt252,
+        ) -> ContractAddress {
             let user_address = self.username_to_address.entry(username).read();
             assert(!user_address.is_zero(), 'Username not found');
             user_address
         }
 
-        fn is_username_taken(self: @ContractState, username: felt252) -> bool {
+        fn is_username_taken(self: @ComponentState<TContractState>, username: felt252) -> bool {
             let address = self.username_to_address.entry(username).read();
             !address.is_zero()
         }
 
-        fn is_user_registered(self: @ContractState, user_address: ContractAddress) -> bool {
+        fn is_user_registered(
+            self: @ComponentState<TContractState>, user_address: ContractAddress,
+        ) -> bool {
             let profile = self.profiles.entry(user_address).read();
             profile.is_active
         }
 
-        fn get_total_users(self: @ContractState) -> u256 {
+        fn get_total_users(self: @ComponentState<TContractState>) -> u256 {
             self.total_users.read()
         }
     }
 
     #[generate_trait]
-    impl InternalImpl of InternalTrait {
+    pub impl InternalImpl<
+        TContractState, +HasComponent<TContractState>,
+    > of InternalTrait<TContractState> {
         fn _validate_registration(
-            self: @ContractState, caller: ContractAddress, username: felt252,
+            self: @ComponentState<TContractState>, caller: ContractAddress, username: felt252,
         ) {
             // Check if user is already registered
             assert(!self.is_user_registered(caller), 'User already registered');
@@ -192,7 +199,7 @@ mod UserProfile {
         }
 
         fn _validate_username_change(
-            self: @ContractState, caller: ContractAddress, new_username: felt252,
+            self: @ComponentState<TContractState>, caller: ContractAddress, new_username: felt252,
         ) {
             // Check if new username is already taken
             assert(!self.is_username_taken(new_username), 'Username already taken');

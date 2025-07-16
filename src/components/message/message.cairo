@@ -1,15 +1,15 @@
-#[starknet::contract]
-mod Message {
+#[starknet::component]
+pub mod message_component {
     use core::num::traits::Zero;
     use core::poseidon::poseidon_hash_span;
-    use gasless_gossip::interface::message::{Conversation, IMessage, Message};
+    use gasless_gossip::components::message::interface::{Conversation, IMessage, Message};
     use starknet::storage::{
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
 
     #[storage]
-    struct Storage {
+    pub struct Storage {
         // Core message storage
         messages: Map<u256, Message>,
         next_message_id: u256,
@@ -33,7 +33,7 @@ mod Message {
 
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {
+    pub enum Event {
         MessageSent: MessageSent,
         ConversationCreated: ConversationCreated,
     }
@@ -64,16 +64,12 @@ mod Message {
         timestamp: u64,
     }
 
-    #[constructor]
-    fn constructor(ref self: ContractState) {
-        self.next_message_id.write(1);
-        self.total_messages.write(0);
-    }
-
-    #[abi(embed_v0)]
-    impl MessageMetadataContractImpl of IMessage<ContractState> {
+    #[embeddable_as(MessageComp)]
+    impl MessageImpl<
+        TContractState, +HasComponent<TContractState>,
+    > of IMessage<ComponentState<TContractState>> {
         fn send_message(
-            ref self: ContractState,
+            ref self: ComponentState<TContractState>,
             recipient: ContractAddress,
             content_hash: felt252,
             message_type: u8,
@@ -148,14 +144,17 @@ mod Message {
                 );
         }
 
-        fn get_message(self: @ContractState, message_id: u256) -> Message {
+        fn get_message(self: @ComponentState<TContractState>, message_id: u256) -> Message {
             let message = self.messages.entry(message_id).read();
             assert(message.message_id != 0, 'Message not found');
             message
         }
 
         fn get_conversation_messages(
-            self: @ContractState, conversation_id: felt252, offset: u32, limit: u32,
+            self: @ComponentState<TContractState>,
+            conversation_id: felt252,
+            offset: u32,
+            limit: u32,
         ) -> Span<Message> {
             let total_messages = self.conversation_message_count.entry(conversation_id).read();
             let mut messages = ArrayTrait::new();
@@ -178,7 +177,7 @@ mod Message {
         }
 
         fn get_user_conversations(
-            self: @ContractState, user: ContractAddress,
+            self: @ComponentState<TContractState>, user: ContractAddress,
         ) -> Span<Conversation> {
             let conversation_count = self.user_conversation_count.entry(user).read();
             let mut conversations = ArrayTrait::new();
@@ -195,7 +194,7 @@ mod Message {
         }
 
         fn verify_message_integrity(
-            self: @ContractState, message_id: u256, content_hash: felt252,
+            self: @ComponentState<TContractState>, message_id: u256, content_hash: felt252,
         ) -> bool {
             let message = self.messages.entry(message_id).read();
             if message.message_id == 0 {
@@ -206,7 +205,9 @@ mod Message {
         }
 
         fn verify_chain_of_custody(
-            self: @ContractState, message_id: u256, expected_previous_hash: felt252,
+            self: @ComponentState<TContractState>,
+            message_id: u256,
+            expected_previous_hash: felt252,
         ) -> bool {
             let message = self.messages.entry(message_id).read();
             if message.message_id == 0 {
@@ -216,14 +217,16 @@ mod Message {
             message.previous_hash == expected_previous_hash
         }
 
-        fn get_conversation_info(self: @ContractState, conversation_id: felt252) -> Conversation {
+        fn get_conversation_info(
+            self: @ComponentState<TContractState>, conversation_id: felt252,
+        ) -> Conversation {
             let conversation = self.conversations.entry(conversation_id).read();
             assert!(conversation.conversation_id != 0, "Conversation not found");
             conversation
         }
 
         fn is_participant(
-            self: @ContractState, conversation_id: felt252, user: ContractAddress,
+            self: @ComponentState<TContractState>, conversation_id: felt252, user: ContractAddress,
         ) -> bool {
             let conversation = self.conversations.entry(conversation_id).read();
             if conversation.conversation_id == 0 {
@@ -233,19 +236,28 @@ mod Message {
             user == conversation.participant_1 || user == conversation.participant_2
         }
 
-        fn get_total_messages(self: @ContractState) -> u256 {
+        fn get_total_messages(self: @ComponentState<TContractState>) -> u256 {
             self.total_messages.read()
         }
 
-        fn get_user_message_count(self: @ContractState, user: ContractAddress) -> u256 {
+        fn get_user_message_count(
+            self: @ComponentState<TContractState>, user: ContractAddress,
+        ) -> u256 {
             self.user_message_count.entry(user).read()
         }
     }
 
     #[generate_trait]
-    impl InternalImpl of InternalTrait {
+    pub impl InternalImpl<
+        TContractState, +HasComponent<TContractState>,
+    > of InternalTrait<TContractState> {
+        fn initializer(ref self: ComponentState<TContractState>) {
+            self.next_message_id.write(1);
+            self.total_messages.write(0);
+        }
+
         fn _validate_message_input(
-            self: @ContractState,
+            self: @ComponentState<TContractState>,
             sender: ContractAddress,
             recipient: ContractAddress,
             content_hash: felt252,
@@ -259,7 +271,7 @@ mod Message {
         }
 
         fn _generate_conversation_id(
-            self: @ContractState,
+            self: @ComponentState<TContractState>,
             sender: ContractAddress,
             recipient: ContractAddress,
             message_type: u8,
@@ -283,7 +295,7 @@ mod Message {
         }
 
         fn _get_or_create_conversation(
-            ref self: ContractState,
+            ref self: ComponentState<TContractState>,
             conversation_id: felt252,
             sender: ContractAddress,
             recipient: ContractAddress,
@@ -330,14 +342,18 @@ mod Message {
         }
 
         fn _add_conversation_to_user(
-            ref self: ContractState, user: ContractAddress, conversation_id: felt252,
+            ref self: ComponentState<TContractState>,
+            user: ContractAddress,
+            conversation_id: felt252,
         ) {
             let current_count = self.user_conversation_count.entry(user).read();
             self.user_conversations.entry((user, current_count)).write(conversation_id);
             self.user_conversation_count.entry(user).write(current_count + 1);
         }
 
-        fn _get_next_sequence_number(ref self: ContractState, conversation_id: felt252) -> u64 {
+        fn _get_next_sequence_number(
+            ref self: ComponentState<TContractState>, conversation_id: felt252,
+        ) -> u64 {
             let current_sequence = self.conversation_sequence.entry(conversation_id).read();
             let next_sequence = current_sequence + 1;
             self.conversation_sequence.entry(conversation_id).write(next_sequence);
@@ -345,7 +361,7 @@ mod Message {
         }
 
         fn _update_message_indexes(
-            ref self: ContractState,
+            ref self: ComponentState<TContractState>,
             message_id: u256,
             conversation_id: felt252,
             sender: ContractAddress,
